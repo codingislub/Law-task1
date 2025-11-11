@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-function decodeJwtPayload(token: string): any | null {
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
@@ -22,5 +22,10 @@ export function getUserFromRequest(req: NextRequest): { sub: string; name?: stri
   const now = Math.floor(Date.now() / 1000);
   if (typeof claims.exp === 'number' && claims.exp < now) return null;
   if (typeof claims.sub !== 'string') return null;
-  return { sub: claims.sub, name: claims.name, email: claims.email, picture: claims.picture };
+  return { 
+    sub: claims.sub, 
+    name: typeof claims.name === 'string' ? claims.name : undefined, 
+    email: typeof claims.email === 'string' ? claims.email : undefined, 
+    picture: typeof claims.picture === 'string' ? claims.picture : undefined 
+  };
 }

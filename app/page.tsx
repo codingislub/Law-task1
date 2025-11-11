@@ -11,31 +11,34 @@ export default function Home() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (user && mounted) {
+      window.location.href = '/dashboard';
+    }
+  }, [user, mounted]);
+
   if (!mounted) {
     return null;
   }
 
   if (isLoading) {
     return (
-  <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   if (user) {
-    window.location.href = '/dashboard';
     return null;
-  }
-
-  return (
+  }  return (
   <div className="min-h-screen bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="flex items-center space-x-2">
                   <div className="w-10 h-10 bg-linear-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

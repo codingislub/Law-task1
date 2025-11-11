@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-function decodeJwtPayload(token: string): any | null {
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;

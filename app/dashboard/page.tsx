@@ -24,7 +24,6 @@ export default function Dashboard() {
   const [sessions, setSessions] = useState<DeviceSession[]>([]);
   const [maxDevices, setMaxDevices] = useState(3);
   const [showForceLogoutModal, setShowForceLogoutModal] = useState(false);
-  const [pendingDeviceId, setPendingDeviceId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [forceLoggedOut, setForceLoggedOut] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -39,6 +38,19 @@ export default function Dashboard() {
       const newDeviceId = `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem('deviceId', newDeviceId);
       setDeviceId(newDeviceId);
+    }
+  }, []);
+
+  const loadSessions = useCallback(async () => {
+    try {
+      const response = await fetch('/api/sessions');
+      if (response.ok) {
+        const data: SessionData = await response.json();
+        setSessions(data.sessions);
+        setMaxDevices(data.maxDevices);
+      }
+    } catch (error) {
+      console.error('Error loading sessions:', error);
     }
   }, []);
 
@@ -58,7 +70,6 @@ export default function Dashboard() {
         setSessions(data.sessions);
         setMaxDevices(data.maxDevices);
         setShowForceLogoutModal(true);
-        setPendingDeviceId(deviceId);
         return;
       }
 
@@ -69,20 +80,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error registering device:', error);
     }
-  }, [deviceId, user]);
-
-  const loadSessions = useCallback(async () => {
-    try {
-      const response = await fetch('/api/sessions');
-      if (response.ok) {
-        const data: SessionData = await response.json();
-        setSessions(data.sessions);
-        setMaxDevices(data.maxDevices);
-      }
-    } catch (error) {
-      console.error('Error loading sessions:', error);
-    }
-  }, []);
+  }, [deviceId, user, loadSessions]);
 
   const checkSession = useCallback(async () => {
     if (!deviceId || !user) return;
@@ -171,8 +169,8 @@ export default function Dashboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ deviceId: s.deviceId }),
         });
-      } catch (e) {
-        // continue best-effort
+      } catch {
+        continue;
       }
     }
     loadSessions();
