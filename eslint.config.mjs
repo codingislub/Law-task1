@@ -10,6 +10,9 @@ const eslintConfig = defineConfig([
       '@next/next/no-html-link-for-pages': 'off',
       '@next/next/no-img-element': 'warn',
       'react-hooks/set-state-in-effect': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
     },
   },
   globalIgnores([

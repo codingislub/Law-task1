@@ -20,15 +20,12 @@ let redisClient: any = null;
 const useRedis = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 if (useRedis) {
   try {
-    // lazy require so local dev without the package still works until installed
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Redis } = require('@upstash/redis');
     redisClient = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL,
       token: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
-  } catch (e) {
-    // If the dependency isn't installed or env is missing, fall back to memory
+  } catch {
     console.warn('Upstash Redis not configured or not installed, falling back to in-memory sessions');
   }
 }
