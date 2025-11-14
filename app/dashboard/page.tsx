@@ -277,17 +277,30 @@ export default function Dashboard() {
                     <span className="font-medium text-gray-900">
                       {session.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Device'}
                     </span>
+                    {session.deviceId === deviceId && (
+                      <span className="px-2 py-0.5 text-xs rounded bg-green-100 text-green-700">Current</span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500 ml-8">
                     Last active: {new Date(session.lastActivity).toLocaleString()}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleForceLogout(session.deviceId)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-                >
-                  Logout This
-                </button>
+                {session.deviceId !== deviceId ? (
+                  <button
+                    onClick={() => handleForceLogout(session.deviceId)}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    Logout This
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed"
+                    title="You cannot logout the current device here"
+                  >
+                    Current Device
+                  </button>
+                )}
               </div>
             ))}
           </div>

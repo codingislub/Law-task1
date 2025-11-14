@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
   const userId = user.sub;
-    const removed = DeviceSessionManager.removeSession(userId, deviceId);
+    const removed = await DeviceSessionManager.removeSession(userId, deviceId);
 
     if (removed) {
       return NextResponse.json({ success: true, message: 'Device logged out successfully' });

@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
   const userId = user.sub;
-    const sessionExists = DeviceSessionManager.sessionExists(userId, deviceId);
+    const sessionExists = await DeviceSessionManager.sessionExists(userId, deviceId);
 
     if (!sessionExists) {
       return NextResponse.json({ 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update activity
-    DeviceSessionManager.updateActivity(userId, deviceId);
+    await DeviceSessionManager.updateActivity(userId, deviceId);
 
     return NextResponse.json({ valid: true });
   } catch (error) {

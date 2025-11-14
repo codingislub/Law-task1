@@ -13,41 +13,57 @@ export async function POST(req: NextRequest) {
     const userAgent = req.headers.get('user-agent') || 'Unknown';
     const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || undefined;
 
-    // If forcing logout of another device
+    const currentDeviceId = deviceId || uuidv4();
+
+    // If forcing logout of another device, ensure it's not the current device
     if (forceDeviceId) {
-      DeviceSessionManager.removeSession(userId, forceDeviceId);
+      if (forceDeviceId === currentDeviceId) {
+        // Do not allow forcing logout of the current device; treat as no force
+        // and continue with standard limit checks
+      } else {
+        await DeviceSessionManager.removeSession(userId, forceDeviceId);
+      }
     }
 
     // Check if user has reached device limit
-    if (DeviceSessionManager.hasReachedLimit(userId) && !forceDeviceId) {
-      const sessions = DeviceSessionManager.getUserSessions(userId);
-      return NextResponse.json({
-        error: 'Device limit reached',
-        maxDevices: DeviceSessionManager.getMaxDevices(),
-        sessions: sessions.map(s => ({
-          deviceId: s.deviceId,
-          userAgent: s.userAgent,
-          loginTime: s.loginTime,
-          lastActivity: s.lastActivity,
-        })),
-      }, { status: 403 });
+    if (await DeviceSessionManager.hasReachedLimit(userId)) {
+      // Allow re-registering/updating the SAME device even when at limit
+      if (await DeviceSessionManager.sessionExists(userId, currentDeviceId)) {
+        await DeviceSessionManager.updateActivity(userId, currentDeviceId);
+        return NextResponse.json({ success: true, deviceId: currentDeviceId });
+      }
+
+      // If limit reached and not actually forcing a different device, block and prompt
+      if (!forceDeviceId || forceDeviceId === currentDeviceId) {
+        const sessions = await DeviceSessionManager.getUserSessions(userId);
+        return NextResponse.json({
+          error: 'Device limit reached',
+          maxDevices: DeviceSessionManager.getMaxDevices(),
+          sessions: sessions.map(s => ({
+            deviceId: s.deviceId,
+            userAgent: s.userAgent,
+            loginTime: s.loginTime,
+            lastActivity: s.lastActivity,
+          })),
+        }, { status: 403 });
+      }
     }
 
     // Check if device already has a session
-    const existingDeviceId = deviceId || uuidv4();
-    if (!DeviceSessionManager.sessionExists(userId, existingDeviceId)) {
+    const existingDeviceId = currentDeviceId;
+    if (!(await DeviceSessionManager.sessionExists(userId, existingDeviceId))) {
       // Add new device session
-      DeviceSessionManager.addSession({
+      await DeviceSessionManager.addSession({
         deviceId: existingDeviceId,
         userId,
         userAgent,
-        loginTime: new Date(),
-        lastActivity: new Date(),
+        loginTime: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
         ipAddress,
       });
     } else {
       // Update activity for existing session
-      DeviceSessionManager.updateActivity(userId, existingDeviceId);
+      await DeviceSessionManager.updateActivity(userId, existingDeviceId);
     }
 
     return NextResponse.json({

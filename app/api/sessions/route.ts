@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const user = getUserFromRequest(req);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const userId = user.sub;
-    const sessions = DeviceSessionManager.getUserSessions(userId);
+  const sessions = await DeviceSessionManager.getUserSessions(userId);
 
     return NextResponse.json({
       sessions: sessions.map(s => ({
